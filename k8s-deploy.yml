@@ -35,4 +35,4 @@ spec:
       targetPort: 8000
   type: LoadBalancer  
   
- 
+
