@@ -1,3 +1,4 @@
 __pycache__/
-.mlops/
-dibetes_model.pkl
+.mlops
+.diabetes_model.pkl
+.runner/

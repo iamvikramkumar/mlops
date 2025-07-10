@@ -1,8 +1,8 @@
-name: Deploy to KIND (Local K8s)
+name: Deploy to KIND via DockerHub Image
 
 on:
   workflow_run:
-    workflows: ["Build and Push Docker Image to DockerHub"]  # 👈 docker-build.yml ka name yeh hi hona chahiye
+    workflows: ["Build and Push Docker Image to DockerHub"]
     types:
       - completed
 
@@ -15,20 +15,31 @@ jobs:
     - name: Checkout Code
       uses: actions/checkout@v3
 
-    - name: Set up KUBECONFIG for kind
+    - name: 🔍 Debug - Show structure
+      run: ls -R
+
+    - name: Set up KUBECONFIG for KIND
       run: |
         mkdir -p $HOME/.kube
-        kind get kubeconfig > $HOME/.kube/config
+        kind get kubeconfig --name kind-demo-mlops > $HOME/.kube/config
 
-    - name: Deploy to KIND Cluster
-      run: |
-        kubectl apply -f k8s-deploy.yml
+    - name: 🧠 Deploy using DockerHub image
+      run: kubectl apply -f mlops-project/k8s-deploy.yml
 
-    - name: Verify Deployment Status
-      run: |
-        kubectl rollout status deployment/diabetes-api
+    - name: 🕒 Wait for Deployment
+      run: kubectl rollout status deployment/diabetes-api
 
-    - name: Show Service Info
+    - name: 🔁 Port forward in background
       run: |
-        kubectl get svc diabetes-api-service
-        echo "✅ Visit http://localhost:30080/docs"
+        nohup kubectl port-forward svc/diabetes-api-service 1111:80 --address=0.0.0.0 > port-forward.log 2>&1 &
+        sleep 10
+
+    - name: 🧪 Test FastAPI /docs
+      run: |
+        curl --fail http://localhost:1111/docs || (echo "❌ /docs failed" && exit 1)
+
+    - name: 🔬 Test FastAPI /predict
+      run: |
+        curl -X POST http://localhost:1111/predict \
+          -H "Content-Type: application/json" \
+          -d '{"feature1": 1.2, "feature2": 0.3, "feature3": 5.1}' || echo "❌ /predict failed"
