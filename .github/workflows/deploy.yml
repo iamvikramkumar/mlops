@@ -12,13 +12,26 @@ jobs:
     runs-on: self-hosted
 
     steps:
+    - name: ✅ Print basic runner info (Debug)
+      run: |
+        echo "🖥️ Runner Info:"
+        hostname
+        date
+        uname -a
+
+    - name: 🐳 Check Docker & KIND (Debug)
+      run: |
+        docker ps
+        kind get clusters || echo "❌ KIND cluster not found"
+        kind get kubeconfig --name kind-demo-mlops || echo "❌ Failed to get kubeconfig"
+
     - name: Checkout Code
       uses: actions/checkout@v3
 
-    - name: 🔍 Debug - Show structure
+    - name: 🔍 Debug - Show project structure
       run: ls -R
 
-    - name: Set up KUBECONFIG for KIND
+    - name: 🧠 Set up KUBECONFIG for KIND
       run: |
         mkdir -p $HOME/.kube
         kind get kubeconfig --name kind-demo-mlops > $HOME/.kube/config
@@ -26,7 +39,7 @@ jobs:
     - name: 🧠 Deploy using DockerHub image
       run: kubectl apply -f mlops-project/k8s-deploy.yml
 
-    - name: 🕒 Wait for Deployment
+    - name: ⏳ Wait for Deployment
       run: kubectl rollout status deployment/diabetes-api
 
     - name: 🔁 Port forward in background
