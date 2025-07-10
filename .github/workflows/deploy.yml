@@ -34,7 +34,7 @@ jobs:
     - name: 🧠 Set up KUBECONFIG for KIND
       run: |
         mkdir -p $HOME/.kube
-        kind get kubeconfig --name kind-demo-mlops > $HOME/.kube/config
+        kind get kubeconfig --name demo-mlops > $HOME/.kube/config
 
     - name: 🧠 Deploy using DockerHub image
       run: kubectl apply -f mlops-project/k8s-deploy.yml
