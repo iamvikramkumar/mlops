@@ -25,7 +25,7 @@ jobs:
         cat $HOME/.kube/config || echo "❌ kubeconfig missing"
 
     - name: 📦 Deploy to KIND Cluster
-      run: kubectl apply -f mlops-project/k8s-deploy.yml
+      run: kubectl apply -f k8s-deploy.yml
 
     - name: ⏳ Wait for Deployment
       run: kubectl rollout status deployment/diabetes-api
