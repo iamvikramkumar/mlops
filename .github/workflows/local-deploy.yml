@@ -1,4 +1,4 @@
-name: Deploy to KIND
+name: Deploy to KIND via DockerHub Image
 
 on:
   workflow_run:
@@ -9,29 +9,32 @@ on:
 jobs:
   deploy:
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
 
     steps:
     - name: Checkout Code
       uses: actions/checkout@v3
 
-    - name: Debug - Show Current Directory
-      run: pwd && ls -alh
+    - name: 🧠 Debug - List project files
+      run: ls -R
 
-    - name: Debug - Show Clusters
-      run: kind get clusters
-
-    - name: Set up kubeconfig
+    - name: 🔧 Set up KUBECONFIG for KIND
       run: |
         mkdir -p $HOME/.kube
-        kind get kubeconfig --name kind-demo-mlops > $HOME/.kube/config
+        kind get kubeconfig --name demo-mlops > $HOME/.kube/config
         cat $HOME/.kube/config || echo "❌ kubeconfig missing"
 
-    - name: Verify kubectl connectivity
-      run: kubectl get nodes || echo "❌ Unable to connect to KIND"
-
-    - name: Deploy App
+    - name: 📦 Deploy to KIND Cluster
       run: kubectl apply -f mlops-project/k8s-deploy.yml
 
-    - name: Check pod status
-      run: kubectl get pods
+    - name: ⏳ Wait for Deployment
+      run: kubectl rollout status deployment/diabetes-api
+
+    - name: 🔁 Port forward in background
+      run: |
+        nohup kubectl port-forward svc/diabetes-api-service 1111:80 --address=0.0.0.0 > port-forward.log 2>&1 &
+        sleep 10
+
+    - name: 🧪 Test FastAPI /docs
+      run: |
+        curl --fail http://localhost:1111/docs || (echo "❌ /docs failed" && exit
