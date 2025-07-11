@@ -2,7 +2,7 @@ name: Local KIND Deploy (CD)
 
 on:
   workflow_run:
-    workflows: ["Build and Push Docker Image"]
+    workflows: ["Build and Push Docker Image to DockerHub"]
     types:
       - completed
 
