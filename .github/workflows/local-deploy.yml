@@ -1,4 +1,4 @@
-name: Local KIND Deploy (CD)
+name: Deploy to KIND
 
 on:
   workflow_run:
@@ -15,5 +15,23 @@ jobs:
     - name: Checkout Code
       uses: actions/checkout@v3
 
-    - name: Run Local Deploy Script
-      run: ./deploy.sh
+    - name: Debug - Show Current Directory
+      run: pwd && ls -alh
+
+    - name: Debug - Show Clusters
+      run: kind get clusters
+
+    - name: Set up kubeconfig
+      run: |
+        mkdir -p $HOME/.kube
+        kind get kubeconfig --name kind-demo-mlops > $HOME/.kube/config
+        cat $HOME/.kube/config || echo "❌ kubeconfig missing"
+
+    - name: Verify kubectl connectivity
+      run: kubectl get nodes || echo "❌ Unable to connect to KIND"
+
+    - name: Deploy App
+      run: kubectl apply -f mlops-project/k8s-deploy.yml
+
+    - name: Check pod status
+      run: kubectl get pods
